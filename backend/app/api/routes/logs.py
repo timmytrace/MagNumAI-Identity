@@ -125,7 +125,7 @@ async def get_stats(
     flagged = sum(1 for r in rows if r.status == "flagged")
     injections = sum(1 for r in rows if r.prompt_injection_detected)
     pii = sum(1 for r in rows if r.pii_detected_input or r.pii_detected_output)
-    avg_risk = sum(r.input_risk_score for r in rows) / total if total else 0.0
+    avg_risk = sum(max(r.input_risk_score, r.output_risk_score) for r in rows) / total if total else 0.0
 
     risk_dist = {"low": 0, "medium": 0, "high": 0, "critical": 0}
     for r in rows:

@@ -116,9 +116,15 @@ class InputSecurityEngine:
     Optionally enhances with LLM-based classification when an OpenAI key is set.
     """
 
-    def __init__(self, block_threshold: float = 0.8, warn_threshold: float = 0.5):
+    def __init__(
+        self,
+        block_threshold: float = 0.8,
+        warn_threshold: float = 0.5,
+        max_prompt_length: int = 20_000,
+    ):
         self.block_threshold = block_threshold
         self.warn_threshold = warn_threshold
+        self.max_prompt_length = max_prompt_length
         self._compiled_injection = [
             (name, re.compile(pattern), score)
             for name, pattern, score in INJECTION_PATTERNS
@@ -167,7 +173,7 @@ class InputSecurityEngine:
                 toxic = True
 
         # --- Length / entropy heuristics ---
-        if len(prompt) > 20_000:
+        if len(prompt) > self.max_prompt_length:
             findings.append({"type": "heuristic", "rule": "excessive_length", "score": 0.4})
             max_score = max(max_score, 0.4)
 

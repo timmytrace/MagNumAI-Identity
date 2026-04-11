@@ -7,6 +7,9 @@ from __future__ import annotations
 import time
 import uuid
 from typing import Optional
+import structlog
+
+logger = structlog.get_logger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
@@ -100,7 +103,8 @@ async def _call_llm(prompt: str, model: str, system_prompt: Optional[str]) -> Op
             model=model, messages=messages, max_tokens=2048
         )
         return response.choices[0].message.content
-    except Exception:
+    except Exception as exc:
+        logger.warning("llm_call_failed", model=model, error=str(exc))
         return None
 
 
