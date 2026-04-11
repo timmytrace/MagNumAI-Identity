@@ -13,7 +13,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Download spaCy model
+# Download spaCy model (small model for basic NLP; en_core_web_lg is listed in
+# requirements.txt for production use, but we fall back to sm here to keep the
+# image size manageable — override at runtime if the large model is needed)
 RUN python -m spacy download en_core_web_sm || true
 
 # Copy application code

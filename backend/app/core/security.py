@@ -5,6 +5,7 @@ from jose import JWTError, jwt
 from app.core.config import get_settings
 import secrets
 import hashlib
+import hmac
 
 settings = get_settings()
 
@@ -48,10 +49,19 @@ def decode_token(token: str) -> Optional[dict]:
 
 
 def generate_api_key() -> str:
-    """Generate a secure random API key."""
+    """Generate a secure random API key (high-entropy random token)."""
     return "msk_" + secrets.token_urlsafe(32)
 
 
 def hash_api_key(api_key: str) -> str:
-    """Hash an API key for secure storage."""
-    return hashlib.sha256(api_key.encode()).hexdigest()
+    """
+    Produce a keyed HMAC-SHA256 digest of an API key for secure database storage.
+    API keys are high-entropy random tokens; HMAC-SHA256 keyed on the application
+    secret is the appropriate storage mechanism (not bcrypt, which is for low-entropy
+    user passwords).
+    """
+    return hmac.new(
+        settings.SECRET_KEY.encode(),
+        api_key.encode(),
+        hashlib.sha256,
+    ).hexdigest()

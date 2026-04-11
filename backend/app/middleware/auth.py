@@ -7,10 +7,9 @@ from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-import hashlib
 
 from app.core.database import get_db
-from app.core.security import decode_token
+from app.core.security import decode_token, hash_api_key
 from app.models.user import User
 from app.models.policy import APIKey
 
@@ -68,9 +67,9 @@ async def verify_api_key(
             detail="API key required",
         )
 
-    key_hash = hashlib.sha256(api_key.encode()).hexdigest()
+    key_hash = hash_api_key(api_key)
     result = await db.execute(
-        select(APIKey).where(APIKey.key_hash == key_hash, APIKey.is_active == True)
+        select(APIKey).where(APIKey.key_hash == key_hash, APIKey.is_active)
     )
     db_key = result.scalar_one_or_none()
 

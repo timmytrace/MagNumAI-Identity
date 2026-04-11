@@ -12,6 +12,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+try:
+    import openai as _openai_module
+    _OPENAI_AVAILABLE = True
+except ImportError:
+    _openai_module = None  # type: ignore[assignment]
+    _OPENAI_AVAILABLE = False
+
 from app.core.database import get_db
 from app.core.config import get_settings
 from app.engines.input_security import InputSecurityEngine
@@ -80,12 +87,11 @@ class GatewayResponse(BaseModel):
 
 
 async def _call_llm(prompt: str, model: str, system_prompt: Optional[str]) -> Optional[str]:
-    """Call OpenAI API if key is configured."""
-    if not settings.OPENAI_API_KEY:
+    """Call OpenAI API if key is configured and library is available."""
+    if not settings.OPENAI_API_KEY or not _OPENAI_AVAILABLE or _openai_module is None:
         return None
     try:
-        import openai
-        client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        client = _openai_module.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
         messages = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
