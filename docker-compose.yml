@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/magnumai
-      SECRET_KEY: ${SECRET_KEY:-change-this-in-production-use-a-long-random-string}
+      SECRET_KEY: "${SECRET_KEY:?Set SECRET_KEY env var}"
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       FIRST_ADMIN_EMAIL: ${FIRST_ADMIN_EMAIL:-admin@magnumai.io}
       FIRST_ADMIN_PASSWORD: ${FIRST_ADMIN_PASSWORD:-changeme123!}

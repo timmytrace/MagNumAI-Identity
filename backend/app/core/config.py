@@ -1,6 +1,13 @@
+import warnings
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import model_validator
 from functools import lru_cache
 from typing import List, Optional
+
+_INSECURE_DEFAULTS = {
+    "change-this-in-production-please-use-a-long-random-string",
+    "change-this-in-production-use-a-long-random-string",
+}
 
 
 class Settings(BaseSettings):
@@ -18,6 +25,23 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+
+    @model_validator(mode="after")
+    def _check_production_secrets(self) -> "Settings":
+        if self.ENVIRONMENT == "production":
+            if self.SECRET_KEY in _INSECURE_DEFAULTS:
+                raise ValueError(
+                    "FATAL: SECRET_KEY is still set to an insecure default. "
+                    "Set a strong SECRET_KEY via environment variable before deploying. "
+                    "Generate one with: openssl rand -hex 32"
+                )
+            if self.FIRST_ADMIN_PASSWORD == "changeme123!":
+                warnings.warn(
+                    "WARNING: FIRST_ADMIN_PASSWORD is still the default 'changeme123!'. "
+                    "Change it via the FIRST_ADMIN_PASSWORD environment variable.",
+                    stacklevel=2,
+                )
+        return self
 
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/magnumai"
