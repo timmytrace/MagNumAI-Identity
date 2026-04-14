@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "MagNumAI Identity & Security Gateway"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
-    ENVIRONMENT: str = "production"
+    ENVIRONMENT: str = "development"
 
     # API
     API_V1_PREFIX: str = "/api/v1"
